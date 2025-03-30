@@ -2,6 +2,7 @@
 
 #include <ios>
 #include <iostream>
+#include "ast_node.h"
 
 Token Lexer::peek() {
   size_t cursor_pos = cursor;

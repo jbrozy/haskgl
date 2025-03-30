@@ -76,14 +76,23 @@ ASTNode *Parser::parse_data_definition() {
       // handle aliases
       if (current_token.type == TokenType::RightArrow) {
         consume(TokenType::RightArrow);
-        printf("1\n");
-        ASTNode *aliases = new ASTNode{};
+        auto aliases = new ASTNode{};
         aliases->type = NodeType::AliasList;
         aliases->value = "";
         consume(TokenType::LeftBracket);
-        consume(TokenType::RightBracket);
-        consume(TokenType::Comma);
-        consume(TokenType::NewLine);
+        Token c = current_token;
+        bool closed = false;
+        while(current_token.type != TokenType::RightBracket) {
+            const Token alias = consume(TokenType::Identifier);
+            if (current_token.type == TokenType::Comma) consume(TokenType::Comma);
+            auto alias_node = new ASTNode{};
+            alias_node->value = alias.data;
+            alias_node->type = NodeType::Alias;
+            aliases->children.emplace_back(alias_node);
+        }
+		consume(TokenType::RightBracket);
+		consume(TokenType::Comma);
+		consume(TokenType::NewLine);
         field->children.emplace_back(aliases);
       } else {
         consume(TokenType::Comma);

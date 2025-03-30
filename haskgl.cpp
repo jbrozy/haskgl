@@ -4,6 +4,7 @@
 #include "Lexer.h"
 #include "flag.h"
 #include "parser.h"
+#include "ast_node.h"
 
 #include <fstream>
 #include <sstream>
@@ -15,6 +16,8 @@ void usage(void) {
 
 std::string type_to_string(NodeType type) {
   switch (type) {
+  case Version:
+    return "Version";
   case Program:
     return "Program";
   case Ident:
@@ -33,6 +36,8 @@ std::string type_to_string(NodeType type) {
     return "Field";
   case AliasList:
     return "AliasList";
+  case Alias:
+    return "Alias";
   }
 }
 

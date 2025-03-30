@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <string>
 
 enum NodeType {
   Program = 0,
@@ -12,6 +13,7 @@ enum NodeType {
   AliasList = 7,
   Alias = 8,
   TypeDef = 9,
+  Version = 10,
 };
 
 struct ASTNode {
