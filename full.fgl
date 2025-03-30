@@ -1,0 +1,32 @@
+@include (vec3, vec4, mat4) -> types
+
+in vertex :: {
+  position :: vec3,
+  normal   :: vec3,
+  uniforms -> {
+      modelMatrix      :: mat4,
+      viewMatrix       :: mat4,
+      projectionMatrix :: mat4,
+      lightPos         :: vec3,
+      cameraPos        :: vec3
+  }
+}
+
+in fragment :: {
+  uniforms -> {
+      modelMatrix      :: mat4,
+      viewMatrix       :: mat4,
+      projectionMatrix :: mat4,
+      lightPos         :: vec3,
+      cameraPos        :: vec3
+  }
+}
+
+out vertex :: {
+  fragPos :: (float, float, float),
+  normal  :: (float, float, float)
+}
+
+out fragment :: {
+  fragColor :: (float, float, float)
+}

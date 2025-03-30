@@ -1,0 +1,5 @@
+data vec3 :: {
+    float x -> [r, a],
+    float y -> [g, d],
+    float z -> [b, s],
+}
