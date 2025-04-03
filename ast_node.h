@@ -1,10 +1,10 @@
 #pragma once
-#include <vector>
 #include <string>
+#include <vector>
 
-enum NodeType {
+enum class NodeType {
   Program = 0,
-  Ident = 1,
+  Identifier = 1,
   Assignment = 2,
   NumberLiteral = 3,
   Field = 4,
@@ -13,7 +13,11 @@ enum NodeType {
   AliasList = 7,
   Alias = 8,
   TypeDef = 9,
-  Version = 10,
+  FunctionDef = 10,
+  FunctionParams = 10,
+  Version = 11,
+  Tuple = 12,
+  List = 13,
 };
 
 struct ASTNode {

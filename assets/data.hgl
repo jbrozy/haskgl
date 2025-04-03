@@ -1,3 +1,8 @@
+data vec2 :: {
+    float x -> [u],
+    float y -> [v],
+}
+
 data vec3 :: {
     float x -> [r, a],
     float y -> [g, d],

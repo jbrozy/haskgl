@@ -11,4 +11,4 @@ set(CMAKE_CXX_STANDARD 17)
 set(CXX_FLAGS "-Wall -stdlib=libc++")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-add_executable(haskgl lexer.cpp  haskgl.cpp parser.cpp)
+add_executable(haskgl lexer.cpp  haskgl.cpp parser.cpp ast_node.cpp)

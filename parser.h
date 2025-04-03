@@ -7,7 +7,7 @@
 class Parser {
 private:
   Lexer &lexer;
-  Token current_token = Token{None, ""};
+  Token current_token = Token{TokenType::None, ""};
   void advance();
   Token consume(TokenType type);
   Token peek_next();
@@ -15,6 +15,7 @@ private:
   bool is_binary(TokenType kind);
   ASTNode *parse_assignment();
   ASTNode *parse_expression();
+  ASTNode *parse_function_def();
   ASTNode *parse_data_definition();
   ASTNode *parse_primary();
 

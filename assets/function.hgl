@@ -1,0 +1,5 @@
+dot :: vec3 -> vec3 -> float
+dot a b = a.x * b.x + a.y * b.y + a.z * b.z
+
+length :: vec3 -> float
+length v :: sqrt dot(v, v)

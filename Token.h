@@ -2,7 +2,7 @@
 
 #include <string>
 
-enum TokenType {
+enum class TokenType {
   Number = 0,
   At = 1,
   LineBreak = 2,
@@ -33,6 +33,8 @@ enum TokenType {
   Colon = 27,
   NewLine = 29,
   Type = 30,
+  Tuple = 31,
+  List = 32
 };
 
 struct Token {

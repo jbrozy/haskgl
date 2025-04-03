@@ -4,6 +4,77 @@
 #include <iostream>
 #include <vector>
 
+constexpr const char *token_to_string(TokenType type) {
+  switch (type) {
+  case TokenType::Number:
+    return "Number";
+  case TokenType::At:
+    return "At";
+  case TokenType::LineBreak:
+    return "LineBreak";
+  case TokenType::Comma:
+    return "Comma";
+  case TokenType::Identifier:
+    return "Identifier";
+  case TokenType::LeftParen:
+    return "LeftParen";
+  case TokenType::RightParen:
+    return "RightParen";
+  case TokenType::LeftBracket:
+    return "LeftBracket";
+  case TokenType::RightBracket:
+    return "RightBracket";
+  case TokenType::LeftBrace:
+    return "LeftBrace";
+  case TokenType::RightBrace:
+    return "RightBrace";
+  case TokenType::Plus:
+    return "Plus";
+  case TokenType::Minus:
+    return "Minus";
+  case TokenType::Divide:
+    return "Divide";
+  case TokenType::Multiply:
+    return "Multiply";
+  case TokenType::Equals:
+    return "Equals";
+  case TokenType::SemiColon:
+    return "SemiColon";
+  case TokenType::DoubleColon:
+    return "DoubleColon";
+  case TokenType::Data:
+    return "Data";
+  case TokenType::Input:
+    return "Input";
+  case TokenType::Output:
+    return "Output";
+  case TokenType::Include:
+    return "Include";
+  case TokenType::RightArrow:
+    return "RightArrow";
+  case TokenType::Uniforms:
+    return "Uniforms";
+  case TokenType::End:
+    return "End";
+  case TokenType::None:
+    return "None";
+  case TokenType::Unknown:
+    return "Unknown";
+  case TokenType::Colon:
+    return "Colon";
+  case TokenType::NewLine:
+    return "NewLine";
+  case TokenType::Type:
+    return "Type";
+  case TokenType::Tuple:
+    return "Tuple";
+  case TokenType::List:
+    return "List";
+  default:
+    return "Unknown TokenType";
+  }
+}
+
 #define NOT_IMPLEMENTED(str)                                                   \
   do {                                                                         \
     std::cerr << "[NOT IMPLEMENTED] " << __FUNCTION__ << " at " << __FILE__    \
@@ -26,7 +97,7 @@ void Parser::advance() { current_token = lexer.next(); }
 Token Parser::consume(TokenType expected) {
   if (current_token.type != expected) {
     throw std::runtime_error("Unexpected Token: '" + current_token.data +
-                             "', expected: " + std::to_string(expected));
+                             "', expected: " + token_to_string(expected));
   }
 
   Token consumed = current_token;
@@ -38,11 +109,19 @@ ASTNode *Parser::parse_primary() {
   switch (current_token.type) {
   case TokenType::Identifier: {
     Token ident = consume(TokenType::Identifier);
-    return new ASTNode{NodeType::Ident, ident.data};
+    return new ASTNode{NodeType::Identifier, ident.data};
   }
   case TokenType::Number: {
     Token number = consume(TokenType::Number);
-    return new ASTNode{NumberLiteral, number.data};
+    return new ASTNode{NodeType::NumberLiteral, number.data};
+  }
+  case TokenType::List: {
+    Token list = consume(TokenType::List);
+    return new ASTNode{NodeType::List, list.data};
+  }
+  case TokenType::Tuple: {
+    Token tuple = consume(TokenType::Tuple);
+    return new ASTNode{NodeType::Tuple, tuple.data};
   }
   default:
     break;
@@ -50,8 +129,8 @@ ASTNode *Parser::parse_primary() {
 }
 
 ASTNode *Parser::parse_expression() {
-  ASTNode *left = parse_primary();
-  return left;
+  auto base = parse_primary();
+  return base;
 }
 
 ASTNode *Parser::parse_data_definition() {
@@ -82,17 +161,18 @@ ASTNode *Parser::parse_data_definition() {
         consume(TokenType::LeftBracket);
         Token c = current_token;
         bool closed = false;
-        while(current_token.type != TokenType::RightBracket) {
-            const Token alias = consume(TokenType::Identifier);
-            if (current_token.type == TokenType::Comma) consume(TokenType::Comma);
-            auto alias_node = new ASTNode{};
-            alias_node->value = alias.data;
-            alias_node->type = NodeType::Alias;
-            aliases->children.emplace_back(alias_node);
+        while (current_token.type != TokenType::RightBracket) {
+          const Token alias = consume(TokenType::Identifier);
+          if (current_token.type == TokenType::Comma)
+            consume(TokenType::Comma);
+          auto alias_node = new ASTNode{};
+          alias_node->value = alias.data;
+          alias_node->type = NodeType::Alias;
+          aliases->children.emplace_back(alias_node);
         }
-		consume(TokenType::RightBracket);
-		consume(TokenType::Comma);
-		consume(TokenType::NewLine);
+        consume(TokenType::RightBracket);
+        consume(TokenType::Comma);
+        consume(TokenType::NewLine);
         field->children.emplace_back(aliases);
       } else {
         consume(TokenType::Comma);
@@ -122,9 +202,11 @@ ASTNode *Parser::parse_data_definition() {
 ASTNode *Parser::parse_assignment() {
   Token identifier = consume(TokenType::Identifier);
   consume(TokenType::Equals);
+
   ASTNode *value = parse_expression();
   ASTNode *assignment = new ASTNode{NodeType::Assignment};
-  assignment->children.push_back(new ASTNode{Ident, identifier.data});
+  assignment->children.push_back(
+      new ASTNode{NodeType::Identifier, identifier.data});
   assignment->children.push_back(value);
 
   return assignment;

@@ -2,9 +2,9 @@
 
 #define FLAG_IMPLEMENTATION
 #include "Lexer.h"
+#include "ast_node.h"
 #include "flag.h"
 #include "parser.h"
-#include "ast_node.h"
 
 #include <fstream>
 #include <sstream>
@@ -14,29 +14,29 @@ void usage(void) {
   flag_print_options(stderr);
 }
 
-std::string type_to_string(NodeType type) {
+constexpr const char *type_to_string(NodeType type) {
   switch (type) {
-  case Version:
+  case NodeType::Version:
     return "Version";
-  case Program:
+  case NodeType::Program:
     return "Program";
-  case Ident:
+  case NodeType::Identifier:
     return "Identifier";
-  case Assignment:
+  case NodeType::Assignment:
     return "Assignment";
-  case NumberLiteral:
+  case NodeType::NumberLiteral:
     return "NumberLiteral";
-  case TypeDef:
+  case NodeType::TypeDef:
     return "TypeDef";
-  case FieldType:
+  case NodeType::FieldType:
     return "FieldType";
-  case FieldName:
+  case NodeType::FieldName:
     return "FieldName";
-  case Field:
+  case NodeType::Field:
     return "Field";
-  case AliasList:
+  case NodeType::AliasList:
     return "AliasList";
-  case Alias:
+  case NodeType::Alias:
     return "Alias";
   }
 }
@@ -60,7 +60,7 @@ void printAST(const ASTNode *node, int indent = 0) {
 }
 
 int main(int argc, char **argv) {
-  std::ifstream stream("assets/data.hgl");
+  std::ifstream stream("assets/assignment.hgl");
   std::stringstream buffer;
   buffer << stream.rdbuf();
 
