@@ -17,6 +17,7 @@ private:
   ASTNode *parse_expression();
   ASTNode *parse_function_def();
   ASTNode *parse_data_definition();
+  ASTNode *parse_array();
   ASTNode *parse_primary();
 
 public:

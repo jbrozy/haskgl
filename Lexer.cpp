@@ -21,6 +21,16 @@ void Lexer::skipWhitespace() {
   }
 }
 
+const char *Lexer::get_sequence() const {
+  char *slice = (char *)malloc(sizeof(char) * (cursor + 1));
+  size_t i = 0;
+  for (i = 0; i < cursor; ++i) {
+    slice[i] = source[i];
+  }
+  slice[i + 1] = '\0';
+  return slice;
+}
+
 char Lexer::peekChar(size_t index) { return source[index]; }
 
 Token Lexer::next() {
@@ -67,16 +77,25 @@ Token Lexer::next() {
     }
 
     // Keywords
-    if (identifier == "data")
+    fprintf(stdout, "Identifier: %s\n", identifier.c_str());
+    if (identifier == "data") {
+      printf("Found data struct\n");
       return Token{TokenType::Data, identifier};
-    if (identifier == "include")
+    }
+    if (identifier == "@include") {
       return Token{TokenType::Include, identifier};
-    if (identifier == "uniforms")
+    }
+    if (identifier == "@uniform") {
       return Token{TokenType::Uniforms, identifier};
-    if (identifier == "in")
+    }
+    if (identifier == "@in") {
       return Token{TokenType::Input, identifier};
-    if (identifier == "out")
+    }
+    if (identifier == "@out") {
       return Token{TokenType::Output, identifier};
+    }
+    // types
+    // TODO: add different types
     if (identifier == "float" || identifier == "int")
       return Token{TokenType::Type, identifier};
 
@@ -125,7 +144,5 @@ Token Lexer::next() {
     return Token{TokenType::Comma, ","};
   case '=':
     return Token{TokenType::Equals, "="};
-  case '@':
-    return Token{TokenType::At, "@"};
   }
 }

@@ -1,9 +1,9 @@
 @include (vec3, vec4, mat4) -> types
 
-in vertex :: {
+@in vertex :: {
   position :: vec3,
   normal   :: vec3,
-  uniforms -> {
+  @uniform :: {
       modelMatrix      :: mat4,
       viewMatrix       :: mat4,
       projectionMatrix :: mat4,

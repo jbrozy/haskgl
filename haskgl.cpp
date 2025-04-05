@@ -60,7 +60,7 @@ void printAST(const ASTNode *node, int indent = 0) {
 }
 
 int main(int argc, char **argv) {
-  std::ifstream stream("assets/assignment.hgl");
+  std::ifstream stream("assets/data.hgl");
   std::stringstream buffer;
   buffer << stream.rdbuf();
 
