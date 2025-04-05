@@ -7,10 +7,9 @@ As for common structs that exist in OpenGL:
 
 ## data types
 ``` haskell
-data vec3 :: {
-    float x -> [r, a],
-    float y -> [g, d],
-    float z -> [b, s],
+data vec2 :: {
+    x -> [u] :: float,
+    y -> [v] :: float,
 }
 ```
 The characters inside ```x -> [r, a]``` are supposed to make everything a bit more verbose. Furthermore, vec4/vec3/vec2 already exist in OpenGL, therefore there is no need to define them again.
