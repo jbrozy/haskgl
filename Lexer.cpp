@@ -69,8 +69,12 @@ Token Lexer::next() {
   }
 
   // Identifiers or keywords
-  if (std::isalpha(current)) {
+  if (std::isalpha(current) || current == '@') {
     std::string identifier;
+    if (peekChar() == '@') {
+      identifier += peekChar();
+      cursor++;
+    }
     while (std::isalnum(peekChar()) || peekChar() == '_') {
       identifier += peekChar();
       cursor++;
@@ -79,7 +83,6 @@ Token Lexer::next() {
     // Keywords
     fprintf(stdout, "Identifier: %s\n", identifier.c_str());
     if (identifier == "data") {
-      printf("Found data struct\n");
       return Token{TokenType::Data, identifier};
     }
     if (identifier == "@include") {

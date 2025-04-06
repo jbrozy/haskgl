@@ -18,7 +18,11 @@ private:
   ASTNode *parse_function_def();
   ASTNode *parse_data_definition();
   ASTNode *parse_array();
+  ASTNode *parse_list();
   ASTNode *parse_primary();
+  ASTNode *parse_includes();
+  ASTNode *parse_input();
+  ASTNode *parse_out();
 
 public:
   Parser(Lexer &lexer) : lexer{lexer} {};

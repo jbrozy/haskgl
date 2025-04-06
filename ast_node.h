@@ -18,6 +18,10 @@ enum class NodeType {
   Version = 11,
   Tuple = 12,
   List = 13,
+  Input = 14,
+  Output = 15,
+  Include = 16,
+  Uniform = 17
 };
 
 struct ASTNode {

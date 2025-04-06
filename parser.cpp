@@ -105,8 +105,135 @@ Token Parser::consume(TokenType expected) {
   return consumed;
 }
 
+ASTNode *Parser::parse_list() {
+  auto root = new ASTNode();
+  root->type = NodeType::List;
+  root->value = "List";
+  consume(TokenType::LeftParen);
+  while (current_token.type != TokenType::RightParen) {
+    Token identifier = consume(TokenType::Identifier);
+    if (current_token.type == TokenType::Comma) {
+      printf("parse_list : Comma\n");
+      consume(TokenType::Comma);
+    }
+    auto import = new ASTNode();
+    import->type = NodeType::Identifier;
+    import->value = identifier.data;
+    root->children.emplace_back(import);
+  }
+  consume(TokenType::RightParen);
+  return root;
+}
+
+ASTNode *Parser::parse_input() {
+  consume(TokenType::Input);
+  auto root = new ASTNode{};
+  root->type = NodeType::Input;
+  auto identifier = consume(TokenType::Identifier);
+  consume(TokenType::DoubleColon);
+  consume(TokenType::LeftBrace);
+  consume(TokenType::NewLine);
+  root->value = identifier.data;
+  while (current_token.type != TokenType::RightBrace) {
+    if (current_token.type == TokenType::Uniforms) {
+      consume(TokenType::Uniforms);
+      consume(TokenType::DoubleColon);
+      consume(TokenType::LeftBrace);
+      consume(TokenType::NewLine);
+      auto uniforms = new ASTNode{};
+      uniforms->type = NodeType::Uniform;
+      uniforms->value = "Uniforms";
+      while (current_token.type != TokenType::RightBrace) {
+        auto sub_type = new ASTNode{};
+        sub_type->type = NodeType::Field;
+        Token sub_ident = consume(TokenType::Identifier);
+        sub_type->value = sub_ident.data;
+        consume(TokenType::DoubleColon);
+        // complex type
+        if (current_token.type == TokenType::Identifier) {
+          Token field_type = consume(TokenType::Identifier);
+          auto sub = new ASTNode{};
+          sub->value = field_type.data;
+          sub->type = NodeType::FieldType;
+          sub_type->children.emplace_back(sub);
+        }
+        if (current_token.type == TokenType::Type) {
+          Token field_type = consume(TokenType::Type);
+          auto sub = new ASTNode{};
+          sub->value = field_type.data;
+          sub->type = NodeType::FieldType;
+          sub_type->children.emplace_back(sub);
+        }
+        if (current_token.type == TokenType::Comma) {
+          consume(TokenType::Comma);
+        }
+        uniforms->children.emplace_back(sub_type);
+        consume(TokenType::NewLine);
+      }
+      consume(TokenType::RightBrace);
+      consume(TokenType::Comma);
+      root->children.emplace_back(uniforms);
+    }
+    if (current_token.type == TokenType::Identifier) {
+      Token ident = consume(TokenType::Identifier);
+      consume(TokenType::DoubleColon);
+      // complex type
+      auto field = new ASTNode{};
+      field->value = ident.data;
+      field->type = NodeType::Field;
+      if (current_token.type == TokenType::Type) {
+        Token type = consume(TokenType::Type);
+        auto field_type = new ASTNode{};
+        field_type->value = type.data;
+        field_type->type = NodeType::FieldType;
+        field->children.emplace_back(field_type);
+      }
+      // complex type
+      if (current_token.type == TokenType::Identifier) {
+        Token type = consume(TokenType::Identifier);
+        auto field_type = new ASTNode{};
+        field_type->value = type.data;
+        field_type->type = NodeType::FieldType;
+        field->children.emplace_back(field_type);
+      }
+      root->children.emplace_back(field);
+    }
+    if (current_token.type == TokenType::Comma) {
+      consume(TokenType::Comma);
+    }
+    consume(TokenType::NewLine);
+  }
+  consume(TokenType::RightBrace);
+  return root;
+}
+
+ASTNode *Parser::parse_includes() {
+  consume(TokenType::Include);
+  auto root = new ASTNode{};
+  root->type = NodeType::Include;
+  root->value = "Include";
+  root->children.emplace_back(parse_list());
+  consume(TokenType::RightArrow);
+  Token path = consume(TokenType::Identifier);
+  auto path_node = new ASTNode{};
+  path_node->type = NodeType::Identifier;
+  path_node->value = path.data;
+  root->children.emplace_back(path_node);
+  consume(TokenType::NewLine);
+  return root;
+}
+
 ASTNode *Parser::parse_primary() {
   switch (current_token.type) {
+  case TokenType::Input: {
+    consume(TokenType::Input);
+    Token ident = consume(TokenType::Identifier);
+    return new ASTNode{NodeType::Input, ident.data};
+  }
+  case TokenType::Output: {
+    Token ident = consume(TokenType::Output);
+    return new ASTNode{NodeType::Input, ident.data};
+  }
   case TokenType::Identifier: {
     Token ident = consume(TokenType::Identifier);
     return new ASTNode{NodeType::Identifier, ident.data};
@@ -145,8 +272,10 @@ ASTNode *Parser::parse_array() {
     auto child = new ASTNode{};
     child->type = NodeType::Identifier;
     child->value = identifier.data;
-    if (current_token.type == TokenType::Comma)
+    if (current_token.type == TokenType::Comma) {
+      printf("Comma parse_array\n");
       consume(TokenType::Comma);
+    }
     base->children.emplace_back(child);
   }
   consume(TokenType::RightBracket);
@@ -171,7 +300,8 @@ ASTNode *Parser::parse_data_definition() {
       consume(TokenType::RightArrow);
       auto aliases = parse_array();
       aliases->type = NodeType::AliasList;
-      if (!aliases->children.empty()) field->children.emplace_back(aliases);
+      if (!aliases->children.empty())
+        field->children.emplace_back(aliases);
     }
     if (current_token.type == TokenType::DoubleColon) {
       consume(TokenType::DoubleColon);
@@ -183,47 +313,22 @@ ASTNode *Parser::parse_data_definition() {
     type->value = type_name.data;
     field->children.emplace_back(type);
     node->children.emplace_back(field);
+    printf("Parse data def : Comma\n");
     consume(TokenType::Comma);
     consume(TokenType::NewLine);
   }
   consume(TokenType::RightBrace);
-  // // decleration has aliases
-  // if (next_token.type == TokenType::RightArrow) {
-  //   consume(TokenType::RightArrow);
-  //   auto aliases = parse_array();
-  //   node->children.emplace_back(aliases);
-
-  //   consume(TokenType::DoubleColon);
-  //   Token type = consume(TokenType::Type);
-  //   auto type_node = new ASTNode{};
-  //   type_node->type = NodeType::FieldType;
-  //   type_node->value = type.data;
-  //   node->children.emplace_back(type_node);
-  //   consume(TokenType::Comma);
-  //   consume(TokenType::NewLine);
-  // }
-  // if (next_token.type == TokenType::DoubleColon) {
-  //   consume(TokenType::DoubleColon);
-  //   Token type = consume(TokenType::Type);
-  //   auto type_node = new ASTNode{};
-  //   type_node->type = NodeType::FieldType;
-  //   type_node->value = type.data;
-  //   node->children.emplace_back(type_node);
-  //   consume(TokenType::Comma);
-  //   consume(TokenType::NewLine);
-  // }
-  // consume(TokenType::RightBrace);
-
   return node;
 }
 
 ASTNode *Parser::parse_assignment() {
   fprintf(stdout, "Parsing Assignment.\n");
   Token identifier = consume(TokenType::Identifier);
+  fprintf(stdout, "Parsing Equals.\n");
   consume(TokenType::Equals);
 
-  ASTNode *value = parse_expression();
-  ASTNode *assignment = new ASTNode{NodeType::Assignment};
+  auto value = parse_expression();
+  auto assignment = new ASTNode{NodeType::Assignment};
   assignment->children.push_back(
       new ASTNode{NodeType::Identifier, identifier.data});
   assignment->children.push_back(value);
@@ -237,6 +342,12 @@ ASTNode *Parser::parse() {
   program->type = NodeType::Program;
   while (current_token.type != TokenType::End) {
     switch (current_token.type) {
+    case TokenType::Input: {
+      program->children.emplace_back(parse_input());
+    } break;
+    case TokenType::Include: {
+      program->children.emplace_back(parse_includes());
+    } break;
     case TokenType::Identifier: {
       program->children.emplace_back(parse_assignment());
     } break;

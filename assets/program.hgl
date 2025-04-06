@@ -9,5 +9,6 @@
       projectionMatrix :: mat4,
       lightPos         :: vec3,
       cameraPos        :: vec3
-  }
+  },
 }
+
