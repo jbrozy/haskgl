@@ -286,6 +286,7 @@ ASTNode *Parser::parse_data_definition() {
   fprintf(stdout, "Parsing data definition.\n");
   Token data = consume(TokenType::Data);
   ASTNode *node = new ASTNode{};
+  node->type = NodeType::TypeDef;
   Token identifier = consume(TokenType::Identifier);
   consume(TokenType::DoubleColon);
   consume(TokenType::LeftBrace);
