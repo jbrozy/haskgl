@@ -1,5 +1,13 @@
 @include (vec3, vec4, mat4) -> types
 
+color = vec4 (vec3 1.0 0.0 0.0) 1.0
+
+dot :: vec3 -> vec3 -> float
+dot a b = a.x * b.x + a.y * b.y + a.z * b.z
+
+length :: vec3 -> float
+length v :: sqrt dot(v, v)
+
 in vertex :: {
   position :: vec3,
   normal   :: vec3,

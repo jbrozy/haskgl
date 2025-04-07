@@ -34,7 +34,13 @@ enum class TokenType {
   NewLine = 29,
   Type = 30,
   Tuple = 31,
-  List = 32
+  List = 32,
+  Dot = 33,
+  Equality = 34,
+  Main = 35,
+  Let = 36,
+  Vertex = 37,
+  Fragment = 38,
 };
 
 struct Token {

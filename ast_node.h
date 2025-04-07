@@ -14,14 +14,24 @@ enum class NodeType {
   Alias = 8,
   TypeDef = 9,
   FunctionDef = 10,
-  FunctionParams = 10,
-  Version = 11,
-  Tuple = 12,
-  List = 13,
-  Input = 14,
-  Output = 15,
-  Include = 16,
-  Uniform = 17
+  FunctionApplication = 11,
+  TypeSignature = 12,
+  FunctionParams = 13,
+  Version = 14,
+  Tuple = 15,
+  List = 16,
+  Input = 17,
+  Output = 18,
+  Include = 19,
+  Uniform = 20,
+  ReturnType = 21,
+  ParamType = 22,
+  MemberAccess = 23,
+  BinOp = 24,
+  EntryPoint = 25,
+  LetInExpr = 26,
+  LetBinding = 27,
+  FieldAccess = 28
 };
 
 struct ASTNode {

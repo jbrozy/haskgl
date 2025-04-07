@@ -38,6 +38,36 @@ constexpr const char *type_to_string(NodeType type) {
     return "AliasList";
   case NodeType::Alias:
     return "Alias";
+  case NodeType::FunctionDef:
+    return "FunctionDef";
+  case NodeType::TypeSignature:
+    return "TypeSignature";
+  case NodeType::FunctionParams:
+    return "FunctionParams";
+  case NodeType::ReturnType:
+    return "ReturnType";
+  case NodeType::ParamType:
+    return "ParamType";
+  case NodeType::MemberAccess:
+    return "MemberAccess";
+  case NodeType::BinOp:
+    return "BinOp";
+  case NodeType::Include:
+    return "Include";
+  case NodeType::List:
+    return "List";
+  case NodeType::Input:
+    return "Input";
+  case NodeType::FunctionApplication:
+    return "FunctionApplication";
+  case NodeType::EntryPoint:
+    return "EntryPoint";
+  case NodeType::FieldAccess:
+    return "FieldAccess";
+  case NodeType::LetBinding:
+    return "LetBinding";
+  case NodeType::LetInExpr:
+    return "LetInExpr";
   }
 }
 
@@ -60,13 +90,12 @@ void printAST(const ASTNode *node, int indent = 0) {
 }
 
 int main(int argc, char **argv) {
-  std::ifstream stream("assets/full.hgl");
+  std::ifstream stream("assets/phong.hgl");
   std::stringstream buffer;
   buffer << stream.rdbuf();
 
   std::string strbf = buffer.str();
   const char *source = strbf.c_str();
-  fprintf(stdout, "%s\n", source);
   stream.close();
 
   Lexer lexer{source};

@@ -82,8 +82,20 @@ Token Lexer::next() {
 
     // Keywords
     fprintf(stdout, "Identifier: %s\n", identifier.c_str());
+    if (identifier == "vertex") {
+      return Token{TokenType::Identifier, identifier};
+    }
+    if (identifier == "fragment") {
+      return Token{TokenType::Identifier, identifier};
+    }
+    if (identifier == "let") {
+      return Token{TokenType::Let, identifier};
+    }
     if (identifier == "data") {
       return Token{TokenType::Data, identifier};
+    }
+    if (identifier == "@main") {
+      return Token{TokenType::Main, identifier};
     }
     if (identifier == "@include") {
       return Token{TokenType::Include, identifier};
@@ -147,5 +159,7 @@ Token Lexer::next() {
     return Token{TokenType::Comma, ","};
   case '=':
     return Token{TokenType::Equals, "="};
+  case '.':
+    return Token{TokenType::Dot, "."};
   }
 }

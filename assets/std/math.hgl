@@ -1,0 +1,7 @@
+@include (vec2, vec3, vec4, mat4) -> types
+
+dot :: vec3 -> vec3 -> float
+dot :: vec2 -> vec2 -> float
+dot a b = a.x * b.y + b.x * b.y
+
+max :: float -> float -> float

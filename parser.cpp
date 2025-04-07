@@ -4,6 +4,20 @@
 #include <iostream>
 #include <vector>
 
+int Parser::get_precedence(TokenType type) const {
+  static std::unordered_map<TokenType, int> prec = {
+      {TokenType::Equality, 10},
+      {TokenType::Plus, 20},
+      {TokenType::Minus, 20},
+      {TokenType::Multiply, 30},
+      {TokenType::Divide, 30},
+      {TokenType::Dot, 100}, // Highest precedence for member access
+  };
+
+  auto it = prec.find(type);
+  return it != prec.end() ? it->second : -1;
+}
+
 constexpr const char *token_to_string(TokenType type) {
   switch (type) {
   case TokenType::Number:
@@ -125,6 +139,69 @@ ASTNode *Parser::parse_list() {
   return root;
 }
 
+ASTNode *Parser::parse_let_binding() {
+  Token name = consume(TokenType::Identifier);
+  consume(TokenType::Equals);
+  ASTNode *expr = parse_expression(0);
+
+  auto binding = new ASTNode{NodeType::LetBinding, name.data};
+  binding->children.push_back(expr);
+  return binding;
+}
+
+ASTNode *Parser::parse_let_in_expr() {
+  auto root = new ASTNode{};
+  root->type = NodeType::LetInExpr;
+  consume(TokenType::Let);
+  Token identifier = consume(TokenType::Identifier);
+  root->value = identifier.data;
+  consume(TokenType::Equals);
+
+  auto binding = new ASTNode{NodeType::LetBinding, identifier.data};
+  binding->children.push_back(parse_expression(0));
+  consume(TokenType::NewLine);
+
+  root->children.push_back(binding);
+
+  while (current_token.type != TokenType::Input) {
+    if (current_token.type == TokenType::NewLine) consume(TokenType::NewLine);
+    Token identifier = consume(TokenType::Identifier);
+    consume(TokenType::Equals);
+    auto expr = parse_expression(0);
+    auto binding = new ASTNode{NodeType::LetBinding, identifier.data};
+    binding->children.push_back(expr);
+    root->children.emplace_back(binding);
+    if (current_token.type == TokenType::NewLine) consume(TokenType::NewLine);
+  }
+
+  auto in = new ASTNode{};
+  in->type = NodeType::Input;
+  consume(TokenType::Input);
+  Token a = consume(TokenType::Identifier);
+  Token b = consume(TokenType::Identifier);
+  in->children.push_back(new ASTNode{NodeType::Identifier, a.data});
+  in->children.push_back(new ASTNode{NodeType::Identifier, b.data});
+  root->children.push_back(in);
+
+  return root;
+}
+
+ASTNode *Parser::parse_main_function() {
+  auto root = new ASTNode{};
+  consume(TokenType::Main);
+  root->type = NodeType::EntryPoint;
+  Token t = consume(TokenType::Identifier);
+  root->value = t.data;
+  consume(TokenType::Equals);
+  if (current_token.type == TokenType::NewLine)
+    consume(TokenType::NewLine);
+  if (current_token.type == TokenType::Let) {
+    root->children.emplace_back(parse_let_in_expr());
+  }
+
+  return root;
+}
+
 ASTNode *Parser::parse_input() {
   consume(TokenType::Input);
   auto root = new ASTNode{};
@@ -223,41 +300,103 @@ ASTNode *Parser::parse_includes() {
   return root;
 }
 
-ASTNode *Parser::parse_primary() {
-  switch (current_token.type) {
-  case TokenType::Input: {
-    consume(TokenType::Input);
-    Token ident = consume(TokenType::Identifier);
-    return new ASTNode{NodeType::Input, ident.data};
+ASTNode *Parser::parse_field_access(ASTNode *base) {
+  while (current_token.type == TokenType::Dot) {
+    consume(TokenType::Dot);
+    Token field = consume(TokenType::Identifier);
+
+    ASTNode *access = new ASTNode{NodeType::FieldAccess, field.data};
+    access->children.push_back(base);
+    base = access;
   }
-  case TokenType::Output: {
-    Token ident = consume(TokenType::Output);
-    return new ASTNode{NodeType::Input, ident.data};
-  }
-  case TokenType::Identifier: {
-    Token ident = consume(TokenType::Identifier);
-    return new ASTNode{NodeType::Identifier, ident.data};
-  }
-  case TokenType::Number: {
-    Token number = consume(TokenType::Number);
-    return new ASTNode{NodeType::NumberLiteral, number.data};
-  }
-  case TokenType::List: {
-    Token list = consume(TokenType::List);
-    return new ASTNode{NodeType::List, list.data};
-  }
-  case TokenType::Tuple: {
-    Token tuple = consume(TokenType::Tuple);
-    return new ASTNode{NodeType::Tuple, tuple.data};
-  }
-  default:
-    break;
-  }
+  return base;
 }
 
-ASTNode *Parser::parse_expression() {
-  auto base = parse_primary();
-  return base;
+ASTNode *Parser::parse_grouped_expression() {
+  consume(TokenType::LeftParen);
+  auto expr = parse_expression(0);
+  consume(TokenType::RightParen);
+  return parse_field_access(expr);
+}
+
+ASTNode *Parser::parse_primary() {
+  ASTNode *node = new ASTNode();
+  if (current_token.type == TokenType::Number) {
+    node->type = NodeType::NumberLiteral;
+    node->value = current_token.data;
+    consume(TokenType::Number);
+
+    return node;
+  }
+  if (current_token.type == TokenType::Type) {
+    node->type = NodeType::Identifier;
+    node->value = current_token.data;
+    consume(TokenType::Identifier);
+
+    return node;
+  }
+  if (current_token.type == TokenType::LeftParen) {
+    return parse_grouped_expression();
+  }
+  if (current_token.type == TokenType::Identifier) {
+    ASTNode *node = new ASTNode();
+    node->type = NodeType::Identifier;
+    node->value = current_token.data;
+    consume(TokenType::Identifier);
+
+    return node;
+  }
+
+  // Handle function application chaining
+  while (is_primary(current_token.type)) {
+    ASTNode *arg = parse_primary();
+    ASTNode *call = new ASTNode{NodeType::FunctionApplication};
+    call->children.push_back(node); // function
+    call->children.push_back(arg);  // argument
+    node = call;
+  }
+  if (node != nullptr) {
+    return parse_field_access(node);
+  }
+
+  // Add support for literals, parentheses, etc. here
+  std::cerr << "Unexpected token in primary expression: " << current_token.data
+            << "\n";
+  return nullptr;
+}
+
+ASTNode *Parser::parse_expression(int min_prec) {
+  ASTNode *lhs = parse_primary();
+
+  // 🔁 Handle function application (left-associative, tighter than any
+  // operator)
+  while (is_primary(current_token.type)) {
+    ASTNode *rhs = parse_primary();
+    ASTNode *app = new ASTNode{NodeType::FunctionApplication, ""};
+    app->children.push_back(lhs);
+    app->children.push_back(rhs);
+    lhs = app;
+  }
+
+  // 🧠 Then handle binary operators
+  while (true) {
+    int prec = get_precedence(current_token.type);
+    if (prec < min_prec)
+      break;
+
+    TokenType op = current_token.type;
+    consume(op);
+
+    ASTNode *rhs = parse_expression(prec + 1);
+
+    ASTNode *bin = new ASTNode{NodeType::BinOp, token_to_string(op)};
+    bin->children.push_back(lhs);
+    bin->children.push_back(rhs);
+
+    lhs = bin;
+  }
+
+  return lhs;
 }
 
 ASTNode *Parser::parse_array() {
@@ -322,19 +461,94 @@ ASTNode *Parser::parse_data_definition() {
   return node;
 }
 
-ASTNode *Parser::parse_assignment() {
+ASTNode *Parser::parse_type_signature(const Token &identifier) {
+  consume(TokenType::DoubleColon);
+  auto root = new ASTNode{};
+  root->value = identifier.data;
+  root->type = NodeType::TypeSignature;
+
+  // consume params and return type
+  std::vector<Token> params;
+  auto return_type = new ASTNode{};
+  return_type->type = NodeType::ReturnType;
+  while (current_token.type != TokenType::NewLine) {
+    if (current_token.type == TokenType::Type) {
+      Token type = consume(TokenType::Type);
+      params.emplace_back(type);
+    } else if (current_token.type == TokenType::Identifier) {
+      Token type = consume(TokenType::Identifier);
+      params.emplace_back(type);
+    }
+
+    if (current_token.type == TokenType::RightArrow) {
+      consume(TokenType::RightArrow);
+    }
+  }
+
+  if (params.size() == 1) {
+    return_type->value = params[0].data;
+    root->children.emplace_back(return_type);
+  } else {
+    for (int i = 0; i < params.size() - 1; ++i) {
+      Token current = params[i];
+      auto sig_param = new ASTNode{};
+      sig_param->type = NodeType::ParamType;
+      sig_param->value = current.data;
+      root->children.emplace_back(sig_param);
+    }
+    return_type->value = params[params.size() - 1].data;
+    root->children.emplace_back(return_type);
+  }
+
+  pending_signatures[identifier.data].push_back(root);
+
+  return root;
+}
+
+ASTNode *Parser::parse_function_def(const Token &identifier) {
+  auto root = new ASTNode{};
+  root->value = identifier.data;
+  root->type = NodeType::FunctionDef;
+
+  std::vector<Token> params;
+  while (current_token.type != TokenType::Equals) {
+    params.emplace_back(consume(TokenType::Identifier));
+  }
+  consume(TokenType::Equals);
+
+  auto expr = parse_expression(1);
+  root->children.emplace_back(expr);
+
+  // Attach all pending signatures (support overloads)
+  auto it = pending_signatures.find(identifier.data);
+  if (it != pending_signatures.end()) {
+    for (ASTNode *sig : it->second) {
+      root->children.insert(root->children.begin(), sig);
+    }
+    pending_signatures.erase(it);
+  }
+  return root;
+}
+
+ASTNode *Parser::parse_assignment(const Token &identifier) {
   fprintf(stdout, "Parsing Assignment.\n");
-  Token identifier = consume(TokenType::Identifier);
   fprintf(stdout, "Parsing Equals.\n");
   consume(TokenType::Equals);
 
-  auto value = parse_expression();
+  auto value = parse_expression(1);
   auto assignment = new ASTNode{NodeType::Assignment};
   assignment->children.push_back(
       new ASTNode{NodeType::Identifier, identifier.data});
   assignment->children.push_back(value);
 
   return assignment;
+}
+
+ASTNode *Parser::get_function_node(ASTNode *program,
+                                   std::string function_name) {
+  if (!program || program->type != NodeType::Program) {
+    return nullptr;
+  }
 }
 
 ASTNode *Parser::parse() {
@@ -344,13 +558,29 @@ ASTNode *Parser::parse() {
   while (current_token.type != TokenType::End) {
     switch (current_token.type) {
     case TokenType::Input: {
+      auto seq = lexer.get_sequence();
+      fprintf(stdout, "%s\n", seq);
       program->children.emplace_back(parse_input());
     } break;
     case TokenType::Include: {
+      auto seq = lexer.get_sequence();
       program->children.emplace_back(parse_includes());
+      fprintf(stderr, "%s\n", seq);
+    } break;
+    case TokenType::Main: {
+      program->children.emplace_back(parse_main_function());
+      auto seq = lexer.get_sequence();
+      fprintf(stderr, "%s\n", seq);
     } break;
     case TokenType::Identifier: {
-      program->children.emplace_back(parse_assignment());
+      Token identifier = consume(TokenType::Identifier);
+      // function signature
+      if (current_token.type == TokenType::DoubleColon) {
+        parse_type_signature(identifier);
+      } else {
+        auto function_def_node = parse_function_def(identifier);
+        program->children.emplace_back(function_def_node);
+      }
     } break;
     case TokenType::Data: {
       program->children.emplace_back(parse_data_definition());
