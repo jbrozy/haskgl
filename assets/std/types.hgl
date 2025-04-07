@@ -1,0 +1,22 @@
+data ivec2 :: {
+    x -> [u, s] :: int,
+    y -> [v, t] :: int,
+}
+
+data vec2 :: {
+    x -> [u, s] :: float,
+    y -> [v, t] :: float,
+}
+
+data vec3 :: {
+    x -> [r] :: float,
+    y -> [g] :: float,
+    z -> [b] :: float,
+}
+
+data vec4 :: {
+    x -> [r] :: float,
+    y -> [g] :: float,
+    z -> [b] :: float,
+    a :: float,
+}
