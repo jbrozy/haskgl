@@ -82,7 +82,7 @@ void printAST(const ASTNode *node, int indent = 0) {
     std::cout << " (" << node->value << ")";
   }
 
-  std::cout << "\n";
+  std::cout << " Internal: " <<node->internal << "\n";
 
   for (const ASTNode *child : node->children) {
     printAST(child, indent + 1);

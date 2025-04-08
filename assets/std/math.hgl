@@ -1,10 +1,13 @@
 @include (vec2, vec3, vec4, mat4) -> types
 
+@internal
 dot :: vec3 -> vec3 -> float
 dot = a.x * b.x + a.y * b.y + a.z * b.z
 
+@internal
 normalize :: vec3 -> vec3
 normalize v = v / sqrt (dot v v)
 
+@internal
 reflect :: vec3 -> vec3 -> vec3
 reflect i n = i - 2.0 * dot n i

@@ -38,4 +38,5 @@ struct ASTNode {
   NodeType type;
   std::string value;
   std::vector<ASTNode *> children;
+  bool internal = false;
 };

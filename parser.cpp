@@ -84,6 +84,8 @@ constexpr const char *token_to_string(TokenType type) {
     return "Tuple";
   case TokenType::List:
     return "List";
+  case TokenType::Internal:
+    return "Internal";
   default:
     return "Unknown TokenType";
   }
@@ -551,11 +553,26 @@ ASTNode *Parser::get_function_node(ASTNode *program,
   }
 }
 
+
+Token Parser::peek_next()
+{
+    size_t old = lexer.cursor;
+    Token token = lexer.next();
+    lexer.cursor = old;
+    return token;
+}
+
 ASTNode *Parser::parse() {
   advance();
   ASTNode *program = new ASTNode();
   program->type = NodeType::Program;
   while (current_token.type != TokenType::End) {
+	bool internal = false;
+    if (current_token.type == TokenType::Internal) {
+        consume(TokenType::Internal);
+        consume(TokenType::NewLine);
+        internal = true;
+    }
     switch (current_token.type) {
     case TokenType::Input: {
       auto seq = lexer.get_sequence();
@@ -576,16 +593,20 @@ ASTNode *Parser::parse() {
       Token identifier = consume(TokenType::Identifier);
       // function signature
       if (current_token.type == TokenType::DoubleColon) {
-        parse_type_signature(identifier);
+        auto sig = parse_type_signature(identifier);
+        sig->internal = internal;
       } else {
         auto function_def_node = parse_function_def(identifier);
+        function_def_node->internal = internal;
         program->children.emplace_back(function_def_node);
       }
     } break;
     case TokenType::Data: {
-      program->children.emplace_back(parse_data_definition());
+		auto data = parse_data_definition();
+      program->children.emplace_back();
     } break;
     }
+    internal = false;
     advance();
   }
   return program;

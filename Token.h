@@ -41,6 +41,7 @@ enum class TokenType {
   Let = 36,
   Vertex = 37,
   Fragment = 38,
+  Internal = 39
 };
 
 struct Token {

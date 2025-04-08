@@ -94,6 +94,9 @@ Token Lexer::next() {
     if (identifier == "data") {
       return Token{TokenType::Data, identifier};
     }
+    if (identifier == "@internal") {
+      return Token{TokenType::Internal, identifier};
+    }
     if (identifier == "@main") {
       return Token{TokenType::Main, identifier};
     }
