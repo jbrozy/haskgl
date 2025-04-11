@@ -31,7 +31,8 @@ enum class NodeType {
   EntryPoint = 25,
   LetInExpr = 26,
   LetBinding = 27,
-  FieldAccess = 28
+  FieldAccess = 28,
+  OperatorOverload = 29
 };
 
 struct ASTNode {

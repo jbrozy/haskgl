@@ -1,10 +1,10 @@
 @include (vec3, vec4, mat4) -> types
 
 @main vertex =
-    let norm        = normalize normal
-        light_dir   = normalize (lightPos - fragPos)
-        view_dir    = normalize (cameraPos - fragPos)
-        reflect_dir    = reflect (-lightDir) norm
+    let norm            = normalize normal
+        light_dir       = normalize (lightPos - fragPos)
+        view_dir        = normalize (cameraPos - fragPos)
+        reflect_dir     = reflect (-lightDir) norm
 
         ambient  = 0.1 * lightColor
         diff     = max (dot norm lightDir) 0.0

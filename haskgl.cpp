@@ -82,7 +82,7 @@ void printAST(const ASTNode *node, int indent = 0) {
     std::cout << " (" << node->value << ")";
   }
 
-  std::cout << " Internal: " <<node->internal << "\n";
+  std::cout << " Internal: " << node->internal << "\n";
 
   for (const ASTNode *child : node->children) {
     printAST(child, indent + 1);
@@ -90,7 +90,7 @@ void printAST(const ASTNode *node, int indent = 0) {
 }
 
 int main(int argc, char **argv) {
-  std::ifstream stream("assets/std/math.hgl");
+  std::ifstream stream("assets/std/operator.hgl");
   std::stringstream buffer;
   buffer << stream.rdbuf();
 

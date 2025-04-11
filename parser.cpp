@@ -166,14 +166,16 @@ ASTNode *Parser::parse_let_in_expr() {
   root->children.push_back(binding);
 
   while (current_token.type != TokenType::Input) {
-    if (current_token.type == TokenType::NewLine) consume(TokenType::NewLine);
+    if (current_token.type == TokenType::NewLine)
+      consume(TokenType::NewLine);
     Token identifier = consume(TokenType::Identifier);
     consume(TokenType::Equals);
     auto expr = parse_expression(0);
     auto binding = new ASTNode{NodeType::LetBinding, identifier.data};
     binding->children.push_back(expr);
     root->children.emplace_back(binding);
-    if (current_token.type == TokenType::NewLine) consume(TokenType::NewLine);
+    if (current_token.type == TokenType::NewLine)
+      consume(TokenType::NewLine);
   }
 
   auto in = new ASTNode{};
@@ -553,13 +555,29 @@ ASTNode *Parser::get_function_node(ASTNode *program,
   }
 }
 
+Token Parser::peek_next() {
+  size_t old = lexer.cursor;
+  Token token = lexer.next();
+  lexer.cursor = old;
+  return token;
+}
 
-Token Parser::peek_next()
-{
-    size_t old = lexer.cursor;
-    Token token = lexer.next();
-    lexer.cursor = old;
-    return token;
+ASTNode *Parser::parse_operator_overload(const Token &token) {
+  auto root = new ASTNode{};
+  root->type = NodeType::OperatorOverload;
+  root->value = token.data;
+  auto params = new ASTNode{};
+  params->type = NodeType::FunctionParams;
+  while (current_token.type != TokenType::DoubleColon) {
+    params->children.emplace_back(
+        new ASTNode{NodeType::ParamType, consume(TokenType::Identifier).data});
+  }
+  root->children.emplace_back(params);
+  consume(TokenType::DoubleColon);
+  auto expr = parse_expression(0);
+  root->children.emplace_back(expr);
+
+  return root;
 }
 
 ASTNode *Parser::parse() {
@@ -567,13 +585,16 @@ ASTNode *Parser::parse() {
   ASTNode *program = new ASTNode();
   program->type = NodeType::Program;
   while (current_token.type != TokenType::End) {
-	bool internal = false;
+    bool internal = false;
     if (current_token.type == TokenType::Internal) {
-        consume(TokenType::Internal);
-        consume(TokenType::NewLine);
-        internal = true;
+      consume(TokenType::Internal);
+      consume(TokenType::NewLine);
+      internal = true;
     }
     switch (current_token.type) {
+    // possible operator overloading
+    case TokenType::LeftParen: {
+    } break;
     case TokenType::Input: {
       auto seq = lexer.get_sequence();
       fprintf(stdout, "%s\n", seq);
@@ -602,7 +623,7 @@ ASTNode *Parser::parse() {
       }
     } break;
     case TokenType::Data: {
-		auto data = parse_data_definition();
+      auto data = parse_data_definition();
       program->children.emplace_back();
     } break;
     }

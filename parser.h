@@ -24,10 +24,11 @@ private:
   ASTNode *parse_includes();
   ASTNode *parse_input();
   ASTNode *parse_out();
+  ASTNode *parse_operator_overload(const Token &token);
   ASTNode *parse_let_in_expr();
   ASTNode *parse_let_binding();
   ASTNode *parse_main_function();
-  ASTNode* parse_field_access(ASTNode* base);
+  ASTNode *parse_field_access(ASTNode *base);
   ASTNode *parse_grouped_expression();
   ASTNode *parse_type_signature(const Token &identifier);
   ASTNode *get_function_node(ASTNode *program, std::string function_name);

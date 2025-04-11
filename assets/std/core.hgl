@@ -1,0 +1,36 @@
+@internal
+data ivec2 :: {
+    x -> [u, s] :: int,
+    y -> [v, t] :: int,
+}
+
+@internal
+data vec2 :: {
+    x -> [u, s] :: float,
+    y -> [v, t] :: float,
+}
+
+@internal
+data vec3 :: {
+    x -> [r] :: float,
+    y -> [g] :: float,
+    z -> [b] :: float,
+}
+
+@internal
+data vec4 :: {
+    x -> [r] :: float,
+    y -> [g] :: float,
+    z -> [b] :: float,
+    a :: float,
+}
+
+@internal
+data mat4 :: {
+    col1 :: vec4,
+    col2 :: vec4,
+    col3 :: vec4,
+    col4 :: vec4,
+}
+
+(+) a b = vec3 (a.x + b.x) (a.y + b.y) (a.z + b.z)
