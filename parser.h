@@ -31,7 +31,7 @@ private:
   ASTNode *parse_field_access(ASTNode *base);
   ASTNode *parse_grouped_expression();
   ASTNode *parse_type_signature(const Token &identifier);
-  ASTNode *get_function_node(ASTNode *program, std::string function_name);
+  ASTNode *parse_let();
   int get_precedence(TokenType type) const;
   std::unordered_map<std::string, std::vector<ASTNode *>> pending_signatures;
 

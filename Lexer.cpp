@@ -146,6 +146,20 @@ Token Lexer::next() {
     return Token{TokenType::Multiply, "*"};
   case '/':
     return Token{TokenType::Divide, "/"};
+  case '>': {
+    if (peekChar(cursor + 1) == '=') {
+      cursor++;
+      return Token{TokenType::GreaterThan, "/"};
+    }
+    return Token{TokenType::GreaterThan, "/"};
+  }
+  case '<': {
+    if (peekChar(cursor + 1) == '=') {
+      cursor++;
+      return Token{TokenType::LessThan, "/"};
+    }
+    return Token{TokenType::LessThan, "/"};
+  }
   case '{':
     return Token{TokenType::LeftBrace, "{"};
   case '}':

@@ -11,6 +11,10 @@ int Parser::get_precedence(TokenType type) const {
       {TokenType::Minus, 20},
       {TokenType::Multiply, 30},
       {TokenType::Divide, 30},
+      {TokenType::LessThan, 30},
+      {TokenType::GreaterThan, 30},
+      {TokenType::LessOrEqualsThan, 30},
+      {TokenType::GreaterOrEqualsThan, 30},
       {TokenType::Dot, 100}, // Highest precedence for member access
   };
 
@@ -86,6 +90,10 @@ constexpr const char *token_to_string(TokenType type) {
     return "List";
   case TokenType::Internal:
     return "Internal";
+  case TokenType::GreaterThan:
+    return "GreaterThan";
+  case TokenType::LessThan:
+    return "LessThan";
   default:
     return "Unknown TokenType";
   }
@@ -534,25 +542,16 @@ ASTNode *Parser::parse_function_def(const Token &identifier) {
   return root;
 }
 
-ASTNode *Parser::parse_assignment(const Token &identifier) {
-  fprintf(stdout, "Parsing Assignment.\n");
-  fprintf(stdout, "Parsing Equals.\n");
-  consume(TokenType::Equals);
+ASTNode *Parser::parse_let() {
+  consume(TokenType::Let);
+  Token identifier = consume(TokenType::Identifier);
+  auto root = new ASTNode{};
+  root->type = NodeType::Let;
+  root->value = identifier.data;
 
-  auto value = parse_expression(1);
-  auto assignment = new ASTNode{NodeType::Assignment};
-  assignment->children.push_back(
-      new ASTNode{NodeType::Identifier, identifier.data});
-  assignment->children.push_back(value);
-
-  return assignment;
-}
-
-ASTNode *Parser::get_function_node(ASTNode *program,
-                                   std::string function_name) {
-  if (!program || program->type != NodeType::Program) {
-    return nullptr;
-  }
+  auto expr = parse_expression(20);
+  root->children.emplace_back(expr);
+  return root;
 }
 
 Token Parser::peek_next() {
@@ -595,6 +594,9 @@ ASTNode *Parser::parse() {
     // possible operator overloading
     case TokenType::LeftParen: {
     } break;
+    case TokenType::Let: {
+      break;
+    }
     case TokenType::Input: {
       auto seq = lexer.get_sequence();
       fprintf(stdout, "%s\n", seq);

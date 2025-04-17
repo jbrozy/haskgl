@@ -41,7 +41,11 @@ enum class TokenType {
   Let = 36,
   Vertex = 37,
   Fragment = 38,
-  Internal = 39
+  Internal = 39,
+  GreaterThan = 40,
+  LessThan = 41,
+  GreaterOrEqualsThan = 42,
+  LessOrEqualsThan = 43,
 };
 
 struct Token {
